@@ -14,6 +14,7 @@ import subprocess
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
+import Debug
 
 
 socket.setdefaulttimeout(30)

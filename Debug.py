@@ -136,11 +136,11 @@ if __name__ == "__main__":
         host = raw_input("Type host, skip for " + str(local) + ":")
         if host == "":
             host = local
-        port = raw_input("Type port, skip for 45678 :")
+        port = raw_input("Type port, skip for 9092 :")
         if port:
             port = int(port)
         else:
-            port = 45678
+            port = 9092
         address = (host, port)
         return address
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         if c4 != "":
             return c4
         else:
-            return "128.238.66.216"
+            return "localhost"
 
 
     def setup(address):
