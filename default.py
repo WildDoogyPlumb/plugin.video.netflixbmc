@@ -16,20 +16,6 @@ import xbmcplugin
 import xbmcgui
 import xbmcaddon
 
-f = open(os.path.join(os.getcwd(), "test.log"), 'a', 0)
-
-
-def log(*args):
-    msg = "[Debug] "
-    msg += str(time.strftime("%c")) + " "
-    for arg in args:
-        msg += str(arg)
-    f.write(msg + "\n")
-    f.flush()
-
-
-log("Start")
-
 socket.setdefaulttimeout(30)
 pluginhandle = int(sys.argv[1])
 addon = xbmcaddon.Addon()
@@ -40,7 +26,6 @@ osWin = xbmc.getCondVisibility('system.platform.windows')
 osLinux = xbmc.getCondVisibility('system.platform.linux')
 osOsx = xbmc.getCondVisibility('system.platform.osx')
 addonUserDataFolder = xbmc.translatePath("special://profile/addon_data/" + addonID)
-log("addonID :", addonID)
 icon = xbmc.translatePath('special://home/addons/' + addonID + '/icon.png')
 utilityPath = xbmc.translatePath('special://home/addons/' + addonID + '/resources/NetfliXBMC_Utility.exe')
 sendKeysPath = xbmc.translatePath('special://home/addons/' + addonID + '/resources/NetfliXBMC_SendKeys.exe')
@@ -83,6 +68,20 @@ if os.path.exists(localeFile):
     fh.close()
     country = language.split("-")[1]
 auth = ""
+
+f = open(os.path.join(cacheFolder, "Netflixbmc.log"), 'a', 0)
+
+
+def log(*args):
+    msg = "[Debug] "
+    msg += str(time.strftime("%c")) + " "
+    for arg in args:
+        msg += str(arg)
+    f.write(msg + "\n")
+    f.flush()
+
+
+log("Start")
 
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 userAgent = "Mozilla/5.0 (Windows NT 5.1; rv:25.0) Gecko/20100101 Firefox/25.0"
