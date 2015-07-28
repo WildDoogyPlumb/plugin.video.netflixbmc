@@ -7,15 +7,6 @@ import socket
 
 
 
-def log(*args):
-    print "[Debug]",
-    print time.strftime("%c"),
-    print " ",
-    for arg in args:
-        print arg,
-    print ""
-
-
 class Debug(Thread):
     def __init__(self, objects_to_watch):
         """
@@ -27,6 +18,14 @@ class Debug(Thread):
         self.watch_list = objects_to_watch
         self.socket = self.socket_init()
         self.socket_start(self.socket, (self.getlocalip(), 9092))
+        self.messages = []
+
+    def log(self, *args):
+        msg = "[Debug] "
+        msg += str(time.strftime("%c")) + " "
+        for arg in args:
+            msg +=  str(arg)
+        self.messages.append(msg)
 
     def socket_init(self):
         return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -75,47 +74,58 @@ class Debug(Thread):
 
     def run(self):
         while self.go:
-            command = raw_input()
-            if command.upper() == "Q":
-                import os
-                os._exit(1)
-            elif command.upper() == "S":
-                message = ""
-                for obj in self.watch_list:
-                    obj_attributes = [a for a in dir(obj) if not a.startswith('_')]
+            try:
+                client, address = self.socket_accept(self.socket)
+                command = ""
+                while 1:
                     try:
-                        message += obj.__class__.__name__
+                        command = client.recv(10000)
+                        if command.upper() == "Q":
+                            import os
+                            os._exit(1)
+                        elif command.upper() == "N":
+                            for i in range(30):
+                                client.send(self.messages.pop()+"\n")
+                        elif command.upper() == "S":
+                            message = ""
+                            for obj in self.watch_list:
+                                obj_attributes = [a for a in dir(obj) if not a.startswith('_')]
+                                try:
+                                    message += obj.__class__.__name__
+                                except Exception as e:
+                                    self.log(e)
+
+                                for attribute in obj_attributes:
+                                    try:
+                                        real_attribute = getattr(obj, attribute)
+                                    except AttributeError as e:
+                                        self.log(e)
+                                        break
+                                    try:
+                                        max = 5
+                                        if type(real_attribute) == str:
+                                            max = 100
+                                        if len(real_attribute) > max:
+                                            message += "\tLen of {0}:{1}\n".format(attribute, len(real_attribute))
+                                        else:
+                                            message += "\t{0}:{1}\n".format(attribute, str(real_attribute))
+                                    except Exception as e:
+                                        self.log(e)
+                            self.log("Status:\n", message)
+                        elif len(command):
+                            if command.upper()[0] == "$":
+                                try:
+                                    result = eval(command[1:])
+                                    self.log(command[1:], "$", result)
+                                except:
+                                    self.log(sys.exc_info())
+                            elif command.upper()[0] == "#":
+                                try:
+                                    exec command[1:]
+                                except:
+                                    self.log(sys.exc_info())
                     except Exception as e:
-                        log(e)
-
-                    for attribute in obj_attributes:
-                        try:
-                            real_attribute = getattr(obj, attribute)
-                        except AttributeError as e:
-                            log(e)
-                            break
-                        try:
-                            max = 5
-                            if type(real_attribute) == str:
-                                max = 100
-                            if len(real_attribute) > max:
-                                message += "\tLen of {0}:{1}\n".format(attribute, len(real_attribute))
-                            else:
-                                message += "\t{0}:{1}\n".format(attribute, str(real_attribute))
-                        except Exception as e:
-                            pass
-                log("Status:\n", message)
-            elif len(command):
-                if command.upper()[0] == "$":
-                    try:
-                        result = eval(command[1:])
-                        log(command[1:], "$", result)
-                    except:
-                        log(sys.exc_info())
-                elif command.upper()[0] == "#":
-                    try:
-                        exec command[1:]
-                    except:
-                        log(sys.exc_info())
-
+                        self.log(e)
+            except Exception as e:
+                self.log(e)
 
