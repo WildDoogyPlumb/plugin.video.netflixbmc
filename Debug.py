@@ -3,6 +3,7 @@ __author__ = 'Wild_Doogy'
 from threading import Thread
 import time
 import sys
+import socket
 
 
 
@@ -24,6 +25,53 @@ class Debug(Thread):
         Thread.__init__(self)
         self.go = True
         self.watch_list = objects_to_watch
+        self.socket = self.socket_init()
+        self.socket_start(self.socket, (self.getlocalip(), 9092))
+
+    def socket_init(self):
+        return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def socket_start(self, my_socket, address):
+        """
+
+        :param my_socket: A socket object to start listening on
+        :type my_socket: socket.socket
+        :param address: The address to start listening on. Format: ("localhost", 80)
+        :type address: tuple of (str, int)
+        :return:
+        """
+        my_socket.bind(address)
+        my_socket.listen(50)
+
+    def socket_accept(self, my_socket):
+        """
+
+        :param my_socket: A socket to accept connections on
+        :type my_socket: socket.socket
+        :return:
+        """
+        return my_socket.accept()
+
+    def getlocalip(self):
+        import os
+
+        c4 = ""
+        if os.sys.platform == "win32":
+            back = os.popen("ipconfig /all")
+            cmd = back.read(2000)
+            cmd2 = cmd[cmd.find("IP Address"):cmd.find("IP Address") + 70]
+            cmd3 = cmd2[cmd2.find(":") + 2:cmd2.find(":") + 19]
+            c4 = cmd3[0:cmd3.find(" ") - 2]
+        elif os.sys.platform == "linux2":
+            back = os.popen("ifconfig")
+            cmd = back.read(2000)
+            cmd2 = cmd[cmd.find("Ethernet"):cmd.find("Ethernet") + 300]
+            cmd3 = cmd2[cmd2.find("inet addr:") + 10:cmd2.find("inet addr:") + 50]
+            c4 = cmd3[0:cmd3.find(" ")]
+        if c4 != "":
+            return c4
+        else:
+            return "localhost"
 
     def run(self):
         while self.go:
