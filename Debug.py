@@ -6,7 +6,6 @@ import sys
 import socket
 
 
-
 class Debug(Thread):
     def __init__(self, objects_to_watch):
         """
@@ -24,7 +23,7 @@ class Debug(Thread):
         msg = "[Debug] "
         msg += str(time.strftime("%c")) + " "
         for arg in args:
-            msg +=  str(arg)
+            msg += str(arg)
         self.messages.append(msg)
 
     def socket_init(self):
@@ -85,7 +84,7 @@ class Debug(Thread):
                             os._exit(1)
                         elif command.upper() == "N":
                             for i in range(30):
-                                client.send(self.messages.pop()+"\n")
+                                client.send(self.messages.pop() + "\n")
                         elif command.upper() == "S":
                             message = ""
                             for obj in self.watch_list:
@@ -129,3 +128,75 @@ class Debug(Thread):
             except Exception as e:
                 self.log(e)
 
+
+
+if __name__ == "__main__":
+    def getadd():
+        local = getlocalip()
+        host = raw_input("Type host, skip for " + str(local) + ":")
+        if host == "":
+            host = local
+        port = raw_input("Type port, skip for 45678 :")
+        if port:
+            port = int(port)
+        else:
+            port = 45678
+        address = (host, port)
+        return address
+
+
+    def getlocalip():
+        import os
+        if os.sys.platform == "win32":
+            back = os.popen("ipconfig /all")
+            cmd = back.read(2000)
+            cmd2 = cmd[cmd.find("IP Address"):cmd.find("IP Address") + 70]
+            cmd3 = cmd2[cmd2.find(":") + 2:cmd2.find(":") + 19]
+            c4 = cmd3[0:cmd3.find(" ") - 2]
+        if os.sys.platform == "linux2":
+            back = os.popen("ifconfig")
+            cmd = back.read(2000)
+            cmd2 = cmd[cmd.find("Ethernet"):cmd.find("Ethernet") + 300]
+            cmd3 = cmd2[cmd2.find("inet addr:") + 10:cmd2.find("inet addr:") + 50]
+            c4 = cmd3[0:cmd3.find(" ")]
+        if c4 != "":
+            return c4
+        else:
+            return "128.238.66.216"
+
+
+    def setup(address):
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect(address)
+        return client
+
+
+    class ThreadClass(Thread):
+        def __init__(self):
+            Thread.__init__(self)
+
+        def run(self):
+            pass
+
+
+    def startclass():
+        TClass = ThreadClass()
+        TClass.start()
+        return TClass
+
+
+    def mainprog(client):
+        i = 0
+        while 1:
+            i += 1
+            try:
+                client.send(raw_input())
+                print client.recv(200000)
+            except:
+                print "Socket closed. Reconnecting."
+                break
+
+
+    while 1:
+        client = setup(getadd())
+        mainprog(client)
