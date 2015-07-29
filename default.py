@@ -117,7 +117,8 @@ while (username == "" or password == ""):
 def index():
     if login():
         addDir("test ", urlMain+"/test", 'listVideos', "")
-        addDir(translation(30002), urlMain + "/MyList?leid=595&link=seeall", 'listVideos', "")
+        addDir("Play ", "70136117", 'playVideo', "")
+        addDir(translation(30002), urlMain, 'listVideos', "")
         addDir(translation(30010), "", 'listViewingActivity', "")
         addDir(translation(30003),
                urlMain + "/WiRecentAdditionsGallery?nRR=releaseDate&nRT=all&pn=1&np=1&actionMethod=json", 'listVideos',
@@ -139,14 +140,14 @@ def listVideos(url):
     log("Here")
     log(url)
     content = opener.open(url).read()
-    if not 'id="page-LOGIN"' in content:
+    if 'profile-switch-container' not in content:
         if singleProfile and 'id="page-ProfilesGate"' in content:
             forceChooseProfile()
         else:
+            log("Content :", content)
             if 'galleryContent' in content:
                 content = content[content.find('galleryContent'):]
             content = content.replace("\\t", "").replace("\\n", "").replace("\\", "")
-            log("Content :", content)
             match1 = re.compile('aria-label="(.+?)"', re.DOTALL).findall(content)
             log("match1 :", match1)
             if match1:
@@ -398,6 +399,7 @@ def addMyListToLibrary():
 
 
 def playVideo(id):
+    log(id)
     xbmc.Player().stop()
     if singleProfile:
         url = "http://movies.netflix.com/WiPlayer?movieid=" + id
