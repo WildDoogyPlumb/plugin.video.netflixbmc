@@ -116,13 +116,14 @@ while (username == "" or password == ""):
 
 def index():
     if login():
+        addDir("test ", urlMain+"/test", 'listVideos', "")
         addDir(translation(30002), urlMain + "/MyList?leid=595&link=seeall", 'listVideos', "")
         addDir(translation(30010), "", 'listViewingActivity', "")
         addDir(translation(30003),
                urlMain + "/WiRecentAdditionsGallery?nRR=releaseDate&nRT=all&pn=1&np=1&actionMethod=json", 'listVideos',
                "")
         addDir(translation(30004), urlMain + "/WiHD?dev=PC&pn=1&np=1&actionMethod=json", 'listVideos', "")
-        addDir(translation(30005), urlMain + "/WiGenre?agid=83&pn=1&np=1&actionMethod=json", 'listVideos', "")
+        addDir(translation(30005), urlMain + "/browse/genre/83", 'listVideos', "")
         addDir(translation(30007), "WiGenre", 'listGenres', "")
         addDir(translation(30006), urlMain + "/WiGenre?agid=6839&pn=1&np=1&actionMethod=json", 'listVideos', "")
         addDir(translation(30009), "KidsAltGenre", 'listGenres', "")
@@ -131,27 +132,26 @@ def index():
 
 
 def listVideos(url):
+    log("Here")
     if not singleProfile:
         setProfile()
     xbmcplugin.setContent(pluginhandle, "movies")
-    content = opener.open(url).read()
+    log("Here")
     log(url)
-    log(content)
+    content = opener.open(url).read()
     if not 'id="page-LOGIN"' in content:
         if singleProfile and 'id="page-ProfilesGate"' in content:
             forceChooseProfile()
         else:
-            if '<div id="queue"' in content:
-                content = content[content.find('<div id="queue"'):]
+            if 'galleryContent' in content:
+                content = content[content.find('galleryContent'):]
             content = content.replace("\\t", "").replace("\\n", "").replace("\\", "")
-            match1 = re.compile('<span id="dbs(.+?)_.+?alt=".+?" src="(.+?)"', re.DOTALL).findall(content)
-            match2 = re.compile('<span class="title "><a id="b(.+?)_', re.DOTALL).findall(content)
+            log("Content :", content)
+            match1 = re.compile('aria-label="(.+?)"', re.DOTALL).findall(content)
+            log("match1 :", match1)
             if match1:
                 for videoID, thumbUrl in match1:
                     listVideo(videoID, "", thumbUrl, False, False)
-            elif match2:
-                for videoID in match2:
-                    listVideo(videoID, "", "", False, False)
             match = re.compile('&pn=(.+?)&', re.DOTALL).findall(url)
             if match:
                 currentPage = match[0]
@@ -556,7 +556,7 @@ def setProfile():
 def chooseProfile():
     content = opener.open(
         "https://movies.netflix.com/ProfilesGate?nextpage=http%3A%2F%2Fmovies.netflix.com%2FDefault").read()
-    match = re.compile('"firstName":"(.+?)".+?guid":"(.+?)"', re.DOTALL).findall(content)
+    match = re.compile('"firstName":"(.+?)".+?"guid":"(.+?)"', re.DOTALL).findall(content)
     user_tokens = {}
     profiles = []
     tokens = []
